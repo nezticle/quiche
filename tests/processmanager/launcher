@@ -1,0 +1,96 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my($state) = $#ARGV >= 0  ? $ARGV[0] : 0;
+
+
+print "hello $state\n";
+
+my($first) = 1;
+
+if (-e 'output/testlog.data') {
+$first = 0;
+}
+
+
+open (MYFILE, '>>output/testlog.data');
+print MYFILE "launcher $state\n";
+close (MYFILE);
+
+$| = 1; # unbuffer STDOUT
+
+if ($state == 0 && $first) {
+  print "QUEUE ./launcher 1\n";
+  print "QUEUE ./log.sh test1\n";
+  exit 0;
+} elsif ($state == 1) {
+  print "QUEUE ./launcher 2\n";
+  print "QUEUE ./log.sh test3\n";
+  print "QUEUE ./log.sh test2\n";
+} elsif ($state == 2) {
+  print "QUEUE ./launcher 3\n";
+  print "QUEUE ./log.sh test4\n";
+  sleep 1;
+} elsif ($state == 3) {
+  print "QUEUE ./log.sh test5\n";
+# we're not explicitely requeuing ourselves here
+} elsif ($state == 0 && !(-e 'output/requeue.data')) {
+# returned to default launcher
+  print "QUEUE ./launcher 4\n";
+  print "QUEUE ./log.sh test6\n";
+} elsif ($state == 4) {
+  unless (-e 'output/requeue.data') {
+    print "QUEUEME\n";
+    print "QUEUE touch output/requeue.data\n";
+  } else {
+    print "QUEUE ./launcher 5\n";
+    print "QUEUE ./log.sh test7\n";
+  }
+} elsif ($state == 5) {
+#bogus ack, should be ignored
+  print "ACK\n";
+  print "QUEUE ./log.sh test8\n";
+} elsif ($state == 0 && !(-e 'output/2ndreturn.data') ) {
+# return to default launcher again
+  print "QUEUE ./launcher 6\n";
+  print "QUEUE touch output/2ndreturn.data\n";
+  print "QUEUE ./log.sh test9\n";
+} elsif ($state == 6) {
+  print "QUEUE ./launcher 8\n";
+  print "QUEUE ./launcher 7\n";
+} elsif ($state == 7) {
+# invalid command
+  print "QUEUE /dev/null\n";
+} elsif ($state == 8) {
+#test that we can kill a process
+  print "QUEUE ./launcher 9\n";
+  print "QUEUE ./log.sh test10\n";
+  print "QUEUE ./loop.sh\n";
+  print "KILL 1400\n";
+} elsif ($state == 9) {
+# test that nothing happens if we try to kill an app that exits before the timeout
+
+  print "QUEUE ./launcher 10\n";
+  print "QUEUE ./sleeplog.sh 2 test12\n";
+  print "QUEUE ./log.sh test11\n";
+  print "KILL 500\n";
+} elsif ($state == 10) {
+# test that nothing happens if we try to kill an app that fails to start
+  print "QUEUE ./launcher 11\n";
+  print "QUEUE ./sleeplog.sh 2 test13\n";
+  print "QUEUE ./thisappdoesntexist\n";
+  print "KILL 500\n";
+} elsif ($state == 11) {
+# launching app that crashes immediately
+  print "QUEUE ./launcher 12\n";
+  print "QUEUE ./crashme.sh\n";
+} elsif ($state == 12) {
+# launching app that crashes after one second
+  print "QUEUE ./launcher 13\n";
+  print "QUEUE ./crashme.sh 1\n";
+} else {
+  print "QUEUE killall processmanager\n";
+  print "QUEUE ./log.sh \"last test\"\n";
+  sleep 2;
+}
