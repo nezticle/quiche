@@ -1,4 +1,7 @@
 #include "applaunchermodel.h"
+
+#include <QtCore/QSettings>
+
 #include <QDebug>
 
 AppLauncherModel::AppLauncherModel(QObject *parent)
@@ -10,8 +13,8 @@ AppLauncherModel::AppLauncherModel(QObject *parent)
     roles[NameRole] = "name";
     roles[DescriptionRole] = "description";
     roles[TypeRole] = "type";
-    roles[ThumbnailRole] = "thumbnail";
-    roles[WorkingDirectoryRole] = "workingDirectory";
+    roles[IconRole] = "icon";
+    roles[PathRole] = "path";
     roles[TargetRole] = "target";
     roles[ArgumentsRole] = "args";
 
@@ -54,10 +57,10 @@ QVariant AppLauncherModel::data(const QModelIndex &index, int role) const
         return appData->description;
     case TypeRole:
         return appData->type;
-    case ThumbnailRole:
-        return appData->thumbnail;
-    case WorkingDirectoryRole:
-        return appData->workingDirectory;
+    case IconRole:
+        return appData->icon;
+    case PathRole:
+        return appData->path;
     case TargetRole:
         return appData->target;
     case ArgumentsRole:
@@ -71,62 +74,132 @@ QVariant AppLauncherModel::data(const QModelIndex &index, int role) const
 void AppLauncherModel::updateModelData()
 {
     //Search for all directories in the Applications Folder:
-    searchDirectoryForApplication(m_applicationDirectory);
+    searchDirectoryForApplications(m_applicationDirectory);
 }
 
-void AppLauncherModel::parseMetaDataFile(const QString &metaDataFile, AppLauncherModel::ApplicationMetaData *appData)
+bool AppLauncherModel::parseMetaDataFile(const QDir &directory, const QString &metaDataFile, AppLauncherModel::ApplicationMetaData *appData)
 {
-    Q_UNUSED(metaDataFile)
-    Q_UNUSED(appData)
-    //TODO: Parse Meta Data file when found
+    QString metaFileLocation(directory.absolutePath() + "/" + metaDataFile);
 
-    //Name
+    //.desktop files are in IniFormat, so we can parse them easily using QSettings
+    QSettings applicationMetaDataFile(metaFileLocation, QSettings::IniFormat);
 
-    //Description
+    applicationMetaDataFile.beginGroup("Quiche");
+    appData->name = applicationMetaDataFile.value("Name", directory.dirName()).toString();
+    appData->description = applicationMetaDataFile.value("Description", "").toString();
+    appData->icon = applicationMetaDataFile.value("Icon", "").toString(); //TODO: No Icon default
+    appData->type = applicationMetaDataFile.value("Type", "").toString();
+    appData->target = applicationMetaDataFile.value("Target", "").toString();
+    appData->path = applicationMetaDataFile.value("Path", directory.absolutePath()).toString();
+    appData->args = applicationMetaDataFile.value("Arguments", "").toString();
 
-    //Thumbnail/Screenshot
+    //If there is no target, then this isn't a valid .desktop file
+    if(appData->target.isEmpty())
+        return false;
 
-    //Arguments
+    if(appData->type.isEmpty()) {
+        if(appData->target.endsWith(".qml"))
+            appData->type = "QML";
+        else
+            appData->type = "Application";
+    }
+
+    return true;
+
 }
 
-void AppLauncherModel::searchDirectoryForApplication(const QDir &dir)
+void AppLauncherModel::searchDirectoryForApplications(const QDir &dir)
 {
-    qDebug() << "searchDirectoryForApplication: " << dir;
-
+    //Create a List of Application Subdirectories
     QStringList directories = dir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
 
     foreach ( QString directory, directories)
     {
         QDir currentDirectory(QString(dir.absolutePath() + "/" + directory));
 
-        //Search for binary target first
-        QFileInfoList filesInDirectory = currentDirectory.entryInfoList(QDir::Executable);
+        //First check for *.desktop files (which contain application meta data)
+        QStringList filters;
+        filters << "*.desktop";
 
-        qDebug() << directory << " has " << filesInDirectory.count() << "apps";
+        QStringList desktopFiles = currentDirectory.entryList(filters);
 
-        foreach (QFileInfo binary, filesInDirectory)
+        foreach ( QString desktopFile, desktopFiles)
         {
             ApplicationMetaData *currentApp = new ApplicationMetaData;
 
-            currentApp->target = binary.fileName();
-            currentApp->workingDirectory = binary.filePath();
-            currentApp->type = QString("native");
-            currentApp->name = currentApp->target; //Default name is target
-
-            //check for meta-data
-            QString metaDataFile = QString(currentApp->target + ".meta");
-            if(currentDirectory.exists(metaDataFile))
-                parseMetaDataFile(QString(binary.filePath() + "/" + metaDataFile), currentApp);
-
-            m_applicationDataList.append(currentApp);
+            //If the meta file is valid, add it to the model data list.
+            if (parseMetaDataFile(currentDirectory, desktopFile, currentApp))
+                m_applicationDataList.append(currentApp);
+            else
+                delete currentApp;
         }
 
-        //TODO: check for QML runtime applications, should probably need meta data attached.
-//        QStringList qmlFilter;
-//        qmlFilter << "*.qml";
+        //If there was at least one .desktop file, move the next folder
+        if (desktopFiles.count() > 0)
+            continue;
 
-        //Check sub directories.
-        searchDirectoryForApplication(currentDirectory);
+        //At this point, since there was no meta data given, try to determine it on context
+        ApplicationMetaData *currentApp = new ApplicationMetaData;
+
+        //Applications will reside in a Directory of the same name
+        currentApp->name = directory;
+        currentApp->path = currentDirectory.absolutePath();
+
+        //Search for a executable target
+        QFileInfoList executableList = currentDirectory.entryInfoList(QDir::Executable);
+
+        //If there is one executable, then this is the target
+        if (executableList.count() == 1)
+            currentApp->target = executableList.at(0).fileName();
+        else if ( executableList.count() > 1)
+        {
+            //Skip this folder, as there is no right answer.
+            delete currentApp;
+            continue;
+        } else {
+            //There were no excutables, so lets try QML files now
+            QStringList filters;
+            filters << "*.qml";
+            QFileInfoList qmlFileList = currentDirectory.entryInfoList(filters);
+
+            //If there is one qml file, this is the target
+            if (qmlFileList.count() == 1)
+            {
+                currentApp->target = qmlFileList.at(0).fileName();
+            } else if (qmlFileList.isEmpty()) {
+                //There is no hope now, move on to the next folder
+                delete currentApp;
+                continue;
+            } else {
+                //If there are more than one qml file, but there is one file that starts with a lowercase letter (eg main.qml)
+                int targetCount = 0;
+                QString target;
+                foreach(QFileInfo qmlFile, qmlFileList)
+                {
+                    QString filename = qmlFile.fileName();
+                    char firstLetter = filename[0].toAscii(); //BUG: so, so, very hackey...
+
+                    if( firstLetter >= 'a' && firstLetter <= 'z' )
+                    {
+                        target = filename;
+                        targetCount++;
+                    }
+                }
+                //If there was more than one qml file meeting the criteria, that was a waste of time
+                if(targetCount != 1)
+                {
+                    delete currentApp;
+                    continue;
+                }
+            }
+        }
+
+        //Now that we have the bare minimum of a Name, Path, and Target currentApp is valid
+
+
+        //TODO: try and find an Icon as well.
+
+        m_applicationDataList.append(currentApp);
     }
 }
 

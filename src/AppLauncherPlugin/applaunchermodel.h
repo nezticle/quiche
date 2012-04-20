@@ -15,8 +15,8 @@ class AppLauncherModel : public QAbstractListModel
         QString name;
         QString description;
         QString type;
-        QString thumbnail;
-        QString workingDirectory;
+        QString icon;
+        QString path;
         QString target;
         QString args;
     };
@@ -26,8 +26,8 @@ public:
         NameRole = Qt::UserRole + 1,
         DescriptionRole,
         TypeRole,
-        ThumbnailRole,
-        WorkingDirectoryRole,
+        IconRole,
+        PathRole,
         TargetRole,
         ArgumentsRole
     };
@@ -50,8 +50,8 @@ private slots:
 private:
     Q_DISABLE_COPY(AppLauncherModel)
 
-    void parseMetaDataFile(const QString &metaDataFile, ApplicationMetaData *appData);
-    void searchDirectoryForApplication(const QDir &dir);
+    bool parseMetaDataFile(const QDir &directory, const QString &metaDataFile, ApplicationMetaData *appData);
+    void searchDirectoryForApplications(const QDir &dir);
 
     QList<ApplicationMetaData*> m_applicationDataList;
     QDir m_applicationDirectory;
