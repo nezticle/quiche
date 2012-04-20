@@ -25,7 +25,7 @@ AppLauncherModel::AppLauncherModel(QObject *parent)
 
 AppLauncherModel::~AppLauncherModel()
 {
-    foreach(ApplicationMetaData *dataItem, m_applicationDataList)
+    foreach (ApplicationMetaData *dataItem, m_applicationDataList)
         delete dataItem;
 }
 
@@ -94,11 +94,11 @@ bool AppLauncherModel::parseMetaDataFile(const QDir &directory, const QString &m
     appData->args = applicationMetaDataFile.value("Arguments", "").toString();
 
     //If there is no target, then this isn't a valid .desktop file
-    if(appData->target.isEmpty())
+    if (appData->target.isEmpty())
         return false;
 
-    if(appData->type.isEmpty()) {
-        if(appData->target.endsWith(".qml"))
+    if (appData->type.isEmpty()) {
+        if (appData->target.endsWith(".qml"))
             appData->type = "QML";
         else
             appData->type = "Application";
@@ -113,8 +113,7 @@ void AppLauncherModel::searchDirectoryForApplications(const QDir &dir)
     //Create a List of Application Subdirectories
     QStringList directories = dir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
 
-    foreach ( QString directory, directories)
-    {
+    foreach ( QString directory, directories) {
         QDir currentDirectory(QString(dir.absolutePath() + "/" + directory));
 
         //First check for *.desktop files (which contain application meta data)
@@ -123,8 +122,7 @@ void AppLauncherModel::searchDirectoryForApplications(const QDir &dir)
 
         QStringList desktopFiles = currentDirectory.entryList(filters);
 
-        foreach ( QString desktopFile, desktopFiles)
-        {
+        foreach ( QString desktopFile, desktopFiles) {
             ApplicationMetaData *currentApp = new ApplicationMetaData;
 
             //If the meta file is valid, add it to the model data list.
@@ -146,13 +144,12 @@ void AppLauncherModel::searchDirectoryForApplications(const QDir &dir)
         currentApp->path = currentDirectory.absolutePath();
 
         //Search for a executable target
-        QFileInfoList executableList = currentDirectory.entryInfoList(QDir::Executable);
+        QFileInfoList executableList = currentDirectory.entryInfoList(QDir::Executable); //FIXME: QDir::Executable doesn't seem to do what I think it does
 
         //If there is one executable, then this is the target
         if (executableList.count() == 1)
             currentApp->target = executableList.at(0).fileName();
-        else if ( executableList.count() > 1)
-        {
+        else if ( executableList.count() > 1) {
             //Skip this folder, as there is no right answer.
             delete currentApp;
             continue;
@@ -163,8 +160,7 @@ void AppLauncherModel::searchDirectoryForApplications(const QDir &dir)
             QFileInfoList qmlFileList = currentDirectory.entryInfoList(filters);
 
             //If there is one qml file, this is the target
-            if (qmlFileList.count() == 1)
-            {
+            if (qmlFileList.count() == 1) {
                 currentApp->target = qmlFileList.at(0).fileName();
             } else if (qmlFileList.isEmpty()) {
                 //There is no hope now, move on to the next folder
@@ -174,20 +170,17 @@ void AppLauncherModel::searchDirectoryForApplications(const QDir &dir)
                 //If there are more than one qml file, but there is one file that starts with a lowercase letter (eg main.qml)
                 int targetCount = 0;
                 QString target;
-                foreach(QFileInfo qmlFile, qmlFileList)
-                {
+                foreach (QFileInfo qmlFile, qmlFileList) {
                     QString filename = qmlFile.fileName();
                     char firstLetter = filename[0].toAscii(); //BUG: so, so, very hackey...
 
-                    if( firstLetter >= 'a' && firstLetter <= 'z' )
-                    {
+                    if ( firstLetter >= 'a' && firstLetter <= 'z' ) {
                         target = filename;
                         targetCount++;
                     }
                 }
                 //If there was more than one qml file meeting the criteria, that was a waste of time
-                if(targetCount != 1)
-                {
+                if (targetCount != 1) {
                     delete currentApp;
                     continue;
                 }
