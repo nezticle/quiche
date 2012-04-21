@@ -1,0 +1,4 @@
+[Quiche]
+Name="terminate test session"
+Target="killall processmanager"
+Type="application"
