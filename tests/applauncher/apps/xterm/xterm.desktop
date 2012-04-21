@@ -1,0 +1,4 @@
+[Quiche]
+Name="launch xterm"
+Target="xterm"
+Type="application"

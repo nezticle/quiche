@@ -1,0 +1,4 @@
+[Quiche]
+Name="launch xclock"
+Target="xclock"
+Type="application"
