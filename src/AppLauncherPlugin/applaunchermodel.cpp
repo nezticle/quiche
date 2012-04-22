@@ -35,12 +35,6 @@ void AppLauncherModel::setApplicationDirectory(const QString &directoryPath)
     emit applicationDirectoryChanged();
 }
 
-void AppLauncherModel::sendRequest(const QByteArray &request)
-{
-  printf("%s\n", request.constData());
-}
-
-
 int AppLauncherModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent)

@@ -38,9 +38,6 @@ public:
     void setApplicationDirectory(const QString &directoryPath);
     const QString applicationDirectory() { return m_applicationDirectory.absolutePath(); }
 
-    Q_INVOKABLE void sendRequest(const QByteArray&);
-
-
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
     virtual QVariant data(const QModelIndex &index, int role) const;
 
