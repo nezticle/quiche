@@ -2,3 +2,4 @@
 Name="launch xterm"
 Target="xterm"
 Type="application"
+Icon="xterm"

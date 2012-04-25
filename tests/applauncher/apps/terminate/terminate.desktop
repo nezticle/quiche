@@ -2,3 +2,4 @@
 Name="terminate test session"
 Target="killall processmanager"
 Type="application"
+Icon="skull.png"

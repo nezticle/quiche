@@ -10,7 +10,7 @@ Item {
     Component {
         id: testDelegate
         Item {
-            width: desktop.width/2; height: 50
+            width: desktop.width/2; height: 150
             Rectangle {
                 id: activeIndicator
                 anchors.fill:parent;
@@ -19,11 +19,23 @@ Item {
                 radius: 8
                 visible: false
             }
-            Column {
-                Text { text: '<b>Name:</b> ' + name }
-                Text { text: '<b>Target:</b> ' + target }
-            }
-
+	    Row {
+		spacing:10
+		anchors.verticalCenter: parent.center
+		Item {
+		width:100; height:100;
+		//Rectangle {width:100; height:100; color: "black"}
+		Image {anchors.fill:parent; source: icon }
+		}
+            	Column {
+                    Text { text: '<b>Name:</b> ' + name }
+                    Text { text: '<b>Target:</b> ' + target }
+                    Text { text: '<b>Type:</b> ' + type }
+                    Text { text: '<b>Icon:</b> ' + icon }
+                    Text { text: '<b>Path:</b> ' + path }
+                    Text { text: '<b>Args:</b> ' + args }
+            	}
+	    }
             MouseArea {
                 id: mouse_area1
                 z: 1
@@ -52,6 +64,7 @@ Item {
 
         model: AppLauncherModel {
             applicationDirectory: "./apps"
+	    iconPath: "./icons"
         }
 
         delegate: testDelegate
