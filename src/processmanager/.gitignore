@@ -1,5 +1,1 @@
-Makefile
-*.o
-moc_*.cpp
-*~
 processmanager
