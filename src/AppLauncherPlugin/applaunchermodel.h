@@ -10,6 +10,7 @@ class AppLauncherModel : public QAbstractListModel
     Q_OBJECT
 
     Q_PROPERTY(QString applicationDirectory READ applicationDirectory WRITE setApplicationDirectory NOTIFY applicationDirectoryChanged)
+    Q_PROPERTY(QString iconPath READ iconPath WRITE setIconPath)
 
     struct ApplicationMetaData {
         QString name;
@@ -38,6 +39,8 @@ public:
     void setApplicationDirectory(const QString &directoryPath);
     const QString applicationDirectory() { return m_applicationDirectory.absolutePath(); }
 
+    void setIconPath(const QString &searchPath);
+    QString iconPath() const;
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
     virtual QVariant data(const QModelIndex &index, int role) const;
 
@@ -51,11 +54,12 @@ private:
     Q_DISABLE_COPY(AppLauncherModel)
 
     bool parseMetaDataFile(const QDir &directory, const QString &metaDataFile, ApplicationMetaData *appData);
+    QString findIcon(const QString &name, const QString &dir) const;
     void searchDirectoryForApplications(const QDir &dir);
 
     QList<ApplicationMetaData*> m_applicationDataList;
     QDir m_applicationDirectory;
-
+    QStringList m_iconPath;
 };
 
 QML_DECLARE_TYPE(AppLauncherModel)

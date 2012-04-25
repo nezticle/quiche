@@ -77,6 +77,56 @@ void AppLauncherModel::updateModelData()
     searchDirectoryForApplications(m_applicationDirectory);
 }
 
+void AppLauncherModel::setIconPath(const QString &searchPath)
+{
+  m_iconPath = searchPath.split(";");
+}
+
+QString AppLauncherModel::iconPath() const
+{
+  return m_iconPath.join(";");
+}
+
+
+static QString lookupIcon(const QString &name, const QString &dir)
+{
+  qDebug() << "lookupIcon" << name << dir;
+
+  QString pathName = dir + "/" + name; 
+  if (QFileInfo(pathName).isFile())
+    return pathName;
+  if (QFileInfo(pathName + ".png").isFile())
+    return pathName + ".png";
+  if (QFileInfo(pathName + ".jpg").isFile())
+    return pathName + ".jpg";
+  if (QFileInfo(pathName + ".xpm").isFile())
+    return pathName + ".xpm";
+  if (QFileInfo(pathName + ".bmp").isFile())
+    return pathName + ".bmp";
+  //yes, we could do this in better ways....
+
+  return QString();
+}
+
+QString AppLauncherModel::findIcon(const QString &name, const QString &dir) const
+{
+  qDebug() << "findIcon" << name << dir;
+
+  if (name.isEmpty())
+    return lookupIcon(QLatin1String("icon"), dir);
+
+  QString res = lookupIcon(name, dir);
+  if (!res.isEmpty())
+    return res;
+  foreach (QString searchDir, m_iconPath) {
+    res = lookupIcon(name, searchDir);
+  if (!res.isEmpty())
+    return res;
+  }
+  return QString();
+}
+
+
 bool AppLauncherModel::parseMetaDataFile(const QDir &directory, const QString &metaDataFile, AppLauncherModel::ApplicationMetaData *appData)
 {
     QString metaFileLocation(directory.absolutePath() + "/" + metaDataFile);
@@ -87,10 +137,10 @@ bool AppLauncherModel::parseMetaDataFile(const QDir &directory, const QString &m
     applicationMetaDataFile.beginGroup("Quiche");
     appData->name = applicationMetaDataFile.value("Name", directory.dirName()).toString();
     appData->description = applicationMetaDataFile.value("Description", "").toString();
-    appData->icon = applicationMetaDataFile.value("Icon", "").toString(); //TODO: No Icon default
     appData->type = applicationMetaDataFile.value("Type", "").toString();
     appData->target = applicationMetaDataFile.value("Target", "").toString();
     appData->path = applicationMetaDataFile.value("Path", directory.absolutePath()).toString();
+    appData->icon = findIcon(applicationMetaDataFile.value("Icon", "").toString(), appData->path);
     appData->args = applicationMetaDataFile.value("Arguments", "").toString();
 
     //If there is no target, then this isn't a valid .desktop file
