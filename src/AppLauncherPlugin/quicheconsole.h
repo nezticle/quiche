@@ -11,6 +11,7 @@ public:
     explicit QuicheConsole(QObject *parent = 0);
     
     Q_INVOKABLE void sendRequest(const QByteArray&);
+    Q_INVOKABLE void launchApplication(const QByteArray&);
     
 };
 

@@ -47,7 +47,7 @@ Item {
                 }
                 onReleased:{
                     activeIndicator.visible = false;
-                    quicheConsole.sendRequest("QUEUE " + target);
+                    quicheConsole.launchApplication(target);
                     Qt.quit()
                 }
                 onCanceled:{
