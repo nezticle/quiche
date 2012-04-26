@@ -187,63 +187,70 @@ void AppLauncherModel::searchDirectoryForApplications(const QDir &dir)
             continue;
 
         //At this point, since there was no meta data given, try to determine it on context
-        ApplicationMetaData *currentApp = new ApplicationMetaData;
+        ApplicationMetaData *contextBasedApplication = applicationFromContext(currentDirectory);
+        if(contextBasedApplication)
+            m_applicationDataList.append(contextBasedApplication);
+    }
+}
 
-        //Applications will reside in a Directory of the same name
-        currentApp->name = directory;
-        currentApp->path = currentDirectory.absolutePath();
+AppLauncherModel::ApplicationMetaData *AppLauncherModel::applicationFromContext(const QDir &dir)
+{
+    ApplicationMetaData *currentApp = new ApplicationMetaData;
 
-        //Search for a executable target
-        QFileInfoList executableList = currentDirectory.entryInfoList(QDir::Executable); //FIXME: QDir::Executable doesn't seem to do what I think it does
+    //Applications will reside in a Directory of the same name
+    currentApp->name = dir.dirName();
+    currentApp->path = dir.absolutePath();
 
-        //If there is one executable, then this is the target
-        if (executableList.count() == 1)
-            currentApp->target = executableList.at(0).fileName();
-        else if ( executableList.count() > 1) {
-            //Skip this folder, as there is no right answer.
+    //Search for a executable target
+    QFileInfoList executableList = dir.entryInfoList(QDir::Executable); //FIXME: QDir::Executable doesn't seem to do what I think it does
+
+    //If there is one executable, then this is the target
+    if (executableList.count() == 1)
+        currentApp->target = executableList.at(0).fileName();
+    else if ( executableList.count() > 1) {
+        //Skip this folder, as there is no right answer.
+        delete currentApp;
+        return 0;
+    } else {
+        //There were no excutables, so lets try QML files now
+        QStringList filters;
+        filters << "*.qml";
+        QFileInfoList qmlFileList = dir.entryInfoList(filters);
+
+        //If there is one qml file, this is the target
+        if (qmlFileList.count() == 1) {
+            currentApp->target = qmlFileList.at(0).fileName();
+        } else if (qmlFileList.isEmpty()) {
+            //There is no hope now, move on to the next folder
             delete currentApp;
-            continue;
+            return 0;
         } else {
-            //There were no excutables, so lets try QML files now
-            QStringList filters;
-            filters << "*.qml";
-            QFileInfoList qmlFileList = currentDirectory.entryInfoList(filters);
+            //If there are more than one qml file, but there is one file that starts with a lowercase letter (eg main.qml)
+            int targetCount = 0;
+            QString target;
+            foreach (QFileInfo qmlFile, qmlFileList) {
+                QString filename = qmlFile.fileName();
+                char firstLetter = filename[0].toAscii(); //BUG: so, so, very hackey...
 
-            //If there is one qml file, this is the target
-            if (qmlFileList.count() == 1) {
-                currentApp->target = qmlFileList.at(0).fileName();
-            } else if (qmlFileList.isEmpty()) {
-                //There is no hope now, move on to the next folder
-                delete currentApp;
-                continue;
-            } else {
-                //If there are more than one qml file, but there is one file that starts with a lowercase letter (eg main.qml)
-                int targetCount = 0;
-                QString target;
-                foreach (QFileInfo qmlFile, qmlFileList) {
-                    QString filename = qmlFile.fileName();
-                    char firstLetter = filename[0].toAscii(); //BUG: so, so, very hackey...
-
-                    if ( firstLetter >= 'a' && firstLetter <= 'z' ) {
-                        target = filename;
-                        targetCount++;
-                    }
-                }
-                //If there was more than one qml file meeting the criteria, that was a waste of time
-                if (targetCount != 1) {
-                    delete currentApp;
-                    continue;
+                if ( firstLetter >= 'a' && firstLetter <= 'z' ) {
+                    target = filename;
+                    targetCount++;
                 }
             }
+            //If there was more than one qml file meeting the criteria, that was a waste of time
+            if (targetCount != 1) {
+                delete currentApp;
+                return 0;
+            }
         }
-
-        //Now that we have the bare minimum of a Name, Path, and Target currentApp is valid
-
-
-        //TODO: try and find an Icon as well.
-
-        m_applicationDataList.append(currentApp);
     }
+    //Now that we have the bare minimum of a Name, Path, and Target currentApp is valid
+
+    //Make an attempt to find an icon
+    currentApp->icon = findIcon(QString(""), dir.path());
+
+    return currentApp;
+
 }
 
 

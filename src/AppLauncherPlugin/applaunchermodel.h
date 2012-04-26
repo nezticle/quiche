@@ -56,6 +56,7 @@ private:
     bool parseMetaDataFile(const QDir &directory, const QString &metaDataFile, ApplicationMetaData *appData);
     QString findIcon(const QString &name, const QString &dir) const;
     void searchDirectoryForApplications(const QDir &dir);
+    ApplicationMetaData* applicationFromContext(const QDir &dir);
 
     QList<ApplicationMetaData*> m_applicationDataList;
     QDir m_applicationDirectory;
