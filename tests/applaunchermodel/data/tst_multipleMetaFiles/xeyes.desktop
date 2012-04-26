@@ -1,0 +1,5 @@
+[Quiche]
+Name="launch xeyes"
+Target="xeyes"
+Type="application"
+Icon="xeyes"

@@ -1,0 +1,5 @@
+[Quiche]
+Name="Gnome Editor"
+Target="gedit"
+Type="application"
+Icon="gedit"
