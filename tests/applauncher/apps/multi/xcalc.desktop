@@ -1,0 +1,5 @@
+[Quiche]
+Name="calculator"
+Target="xcalc"
+Type="application"
+Icon="calc"

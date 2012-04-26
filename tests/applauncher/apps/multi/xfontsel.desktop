@@ -1,0 +1,5 @@
+[Quiche]
+Name="x font selector"
+Target="xfontsel"
+Type="application"
+Icon="../../icons/font.png"

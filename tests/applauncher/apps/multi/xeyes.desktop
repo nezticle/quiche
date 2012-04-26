@@ -1,0 +1,5 @@
+[Quiche]
+Name="eye candy"
+Target="xeyes +shape -geometry 1366x768"
+Type="application"
+Icon="eyes.png"
