@@ -202,7 +202,7 @@ AppLauncherModel::ApplicationMetaData *AppLauncherModel::applicationFromContext(
     currentApp->path = dir.absolutePath();
 
     //Search for a executable target
-    QFileInfoList executableList = dir.entryInfoList(QDir::Executable); //FIXME: QDir::Executable doesn't seem to do what I think it does
+    QFileInfoList executableList = dir.entryInfoList(QDir::Files | QDir::Executable);
 
     //If there is one executable, then this is the target
     if (executableList.count() == 1)
