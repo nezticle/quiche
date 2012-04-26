@@ -47,7 +47,10 @@ Item {
                 }
                 onReleased:{
                     activeIndicator.visible = false;
-                    quicheConsole.launchApplication(target);
+                    if (type == "application")
+                        quicheConsole.launchApplication(target);
+                    else //type == qml
+                        quicheConsole.launchApplication("qmlscene " + path + "/" + target);
                     Qt.quit()
                 }
                 onCanceled:{

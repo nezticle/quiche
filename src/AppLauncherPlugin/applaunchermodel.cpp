@@ -205,8 +205,10 @@ AppLauncherModel::ApplicationMetaData *AppLauncherModel::applicationFromContext(
     QFileInfoList executableList = dir.entryInfoList(QDir::Files | QDir::Executable);
 
     //If there is one executable, then this is the target
-    if (executableList.count() == 1)
+    if (executableList.count() == 1) {
         currentApp->target = executableList.at(0).fileName();
+        currentApp->type = QString("application");
+    }
     else if ( executableList.count() > 1) {
         //Skip this folder, as there is no right answer.
         delete currentApp;
@@ -216,6 +218,7 @@ AppLauncherModel::ApplicationMetaData *AppLauncherModel::applicationFromContext(
         QStringList filters;
         filters << "*.qml";
         QFileInfoList qmlFileList = dir.entryInfoList(filters);
+        currentApp->type = QString("qml");
 
         //If there is one qml file, this is the target
         if (qmlFileList.count() == 1) {
@@ -242,6 +245,7 @@ AppLauncherModel::ApplicationMetaData *AppLauncherModel::applicationFromContext(
                 delete currentApp;
                 return 0;
             }
+            currentApp->target = target;
         }
     }
     //Now that we have the bare minimum of a Name, Path, and Target currentApp is valid
