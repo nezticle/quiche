@@ -46,7 +46,8 @@ protected:
 private:
   QList<PiCommand> m_commandStack;
   PiCommand m_currentCommand;
-  QByteArray m_directoryForNextCommand;
+  QByteArray m_nextDirectory;
+  QByteArray m_currentDirectory;
 
   PiProcess *m_currentProcess;
 

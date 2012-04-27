@@ -34,4 +34,17 @@ launcher 13
 14
 15
 launcher 14
+sublauncher 0
+subtest1
+sublauncher 1
+subtest2
+sublauncher 1
+subtest2b
+sublauncher 2
+subtest3
+sublauncher 3
+sub_sub_log
+sublauncher 4
+sublog_exit
+launcher 15
 last test

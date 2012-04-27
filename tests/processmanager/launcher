@@ -105,6 +105,12 @@ if ($state == 0 && $first) {
   print "SETDIR subdir\n";
   print "QUEUE ls\n";
 
+} elsif ($state == 14) {
+# sublauncher
+  print "QUEUE ./launcher 15\n";
+
+  print "SETDIR subdir\n";
+  print "QUEUE sublauncher\n";
 
 } else {
   print "QUEUE killall processmanager\n";
