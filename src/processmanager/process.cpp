@@ -48,7 +48,10 @@ void PiProcess::handleCommand(const QByteArray &line)
     m_processManager->requeueCurrent();
   } else if (line.startsWith("QUEUE ")) {
     qDebug() << "queueing";
-    m_processManager->queue(line.mid(6));
+    m_processManager->queue(line.mid(6).trimmed());
+  } else if (line.startsWith("SETDIR ")) {
+    qDebug() << "setting directory";
+    m_processManager->setDirectory(line.mid(7).trimmed());
   } else if (line.startsWith("KILL ")) {
     int delay = line.mid(5).trimmed().toInt();
     qDebug() << "termination request" << delay;

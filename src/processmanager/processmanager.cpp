@@ -3,7 +3,7 @@
 
 #include <qtimer.h>
 #include <qdebug.h>
-
+#include <qdir.h>
 
 PiProcessManager::PiProcessManager(int argc, char**argv)
   :QCoreApplication(argc, argv)
@@ -20,13 +20,19 @@ PiProcessManager::~PiProcessManager()
 void PiProcessManager::queue(const QByteArray &commandLine)
 {
   qDebug() << "queueing" << commandLine;
-  m_commandLineStack.append(commandLine);
+  m_commandStack.append(PiCommand(commandLine, m_directoryForNextCommand));
+  m_directoryForNextCommand = QByteArray();
 }
 
 void PiProcessManager::requeueCurrent()
 {
-  qDebug() << "requeueing" << m_currentCommandLine;
-  m_commandLineStack.append(m_currentCommandLine);
+  qDebug() << "requeueing" << m_currentCommand.commandLine;
+  m_commandStack.append(m_currentCommand);
+}
+
+void PiProcessManager::setDirectory(const QByteArray &dir)
+{
+  m_directoryForNextCommand = dir;
 }
 
 //slots:
@@ -47,7 +53,7 @@ void PiProcessManager::terminateNextProcessAfter(int msec)
 void PiProcessManager::timerEvent(QTimerEvent * event)
 {
   if (event->timerId() == m_terminationTimer.timerId()) {
-    qDebug() << "PiProcessManager::timerEvent() terminating" << m_currentCommandLine;
+    qDebug() << "PiProcessManager::timerEvent() terminating" << m_currentCommand.commandLine;
     terminateCurrentProcess();
   }
 }
@@ -58,10 +64,10 @@ void PiProcessManager::launchNextProcess()
 {
   qDebug() << "PiProcessManager::launchNextProcess";
 
-  m_currentCommandLine = m_commandLineStack.last();
+  m_currentCommand = m_commandStack.last();
 
-  if (m_commandLineStack.count() > 1)
-    m_commandLineStack.removeLast(); //always make sure we have one app to launch
+  if (m_commandStack.count() > 1)
+    m_commandStack.removeLast(); //always make sure we have one app to launch
   delete m_currentProcess;
 
   m_currentProcess = new PiProcess(this);
@@ -75,9 +81,19 @@ void PiProcessManager::launchNextProcess()
   if (m_terminateNextProcessDelay > 0)
     m_terminationTimer.start(m_terminateNextProcessDelay, this);
   m_terminateNextProcessDelay = 0;
-  
-  qDebug() << "...launching" << m_currentCommandLine;
-  m_currentProcess->start(m_currentCommandLine);
-  qDebug() << "launched with QProcess::state()" << m_currentProcess->state();
 
+
+  static QByteArray defaultPath = qgetenv("PATH");
+  
+  if (!m_currentCommand.directory.isEmpty()) {
+    qDebug() << "working dir" << m_currentCommand.directory;
+    m_currentProcess->setWorkingDirectory(m_currentCommand.directory);
+    QByteArray absoluteDirPath =  QDir().absoluteFilePath(m_currentCommand.directory).toLatin1();
+    qputenv("PATH", absoluteDirPath + ":" + defaultPath);
+  }
+
+  qDebug() << "...launching" << m_currentCommand.commandLine;
+  m_currentProcess->start(m_currentCommand.commandLine);
+  qDebug() << "launched with QProcess::state()" << m_currentProcess->state();
+  qputenv("PATH", defaultPath);
 }

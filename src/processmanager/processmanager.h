@@ -5,6 +5,22 @@
 
 class PiProcess;
 
+
+struct PiCommand
+{
+  PiCommand() {}
+  PiCommand(const QByteArray &cmd)
+    : commandLine(cmd), directory(QByteArray())
+  {
+  }
+  PiCommand(const QByteArray &cmd, const QByteArray &dir)
+    : commandLine(cmd), directory(dir)
+  {
+  }
+  QByteArray commandLine;
+  QByteArray directory;
+};
+
 class PiProcessManager : public QCoreApplication
 {
 Q_OBJECT
@@ -14,6 +30,7 @@ public:
 
   void queue(const QByteArray &commandLine);
   void requeueCurrent();
+  void setDirectory(const QByteArray& dir);
 
 public slots:
   void terminateCurrentProcess();
@@ -27,8 +44,9 @@ protected:
 
 
 private:
-  QList<QByteArray> m_commandLineStack;
-  QByteArray m_currentCommandLine;
+  QList<PiCommand> m_commandStack;
+  PiCommand m_currentCommand;
+  QByteArray m_directoryForNextCommand;
 
   PiProcess *m_currentProcess;
 
