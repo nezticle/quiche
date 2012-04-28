@@ -48,7 +48,7 @@ Item {
                 onReleased:{
                     activeIndicator.visible = false;
                     if (type == "application")
-                        quicheConsole.launchApplication(target);
+                        quicheConsole.launchApplication(target + " -geometry 1920x1080+0+0");
                     else //type == qml
                         quicheConsole.launchApplication("qmlscene " + path + "/" + target);
                     Qt.quit()
