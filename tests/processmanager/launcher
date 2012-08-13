@@ -89,6 +89,29 @@ if ($state == 0 && $first) {
 # launching app that crashes after one second
   print "QUEUE ./launcher 13\n";
   print "QUEUE ./crashme.sh 1\n";
+} elsif ($state == 13) {
+# working directory
+  print "QUEUE ./launcher 14\n";
+
+  print "SETDIR subdir\n";
+  print "QUEUE subdir/sublog.sh thisshouldntwork\n";
+
+  print "SETDIR subdir\n";
+  print "QUEUE ./sublog.sh 15\n";
+
+  print "SETDIR subdir\n";
+  print "QUEUE sublog.sh 14\n";
+
+  print "SETDIR subdir\n";
+  print "QUEUE ls\n";
+
+} elsif ($state == 14) {
+# sublauncher
+  print "QUEUE ./launcher 15\n";
+
+  print "SETDIR subdir\n";
+  print "QUEUE sublauncher\n";
+
 } else {
   print "QUEUE killall processmanager\n";
   print "QUEUE ./log.sh \"last test\"\n";

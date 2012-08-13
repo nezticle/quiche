@@ -1,0 +1,43 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my($state) = $#ARGV >= 0  ? $ARGV[0] : 0;
+
+
+print "sublauncher $state\n";
+
+open (MYFILE, '>>../output/testlog.data');
+print MYFILE "sublauncher $state\n";
+close (MYFILE);
+
+
+if ($state == 0) {
+  print "QUEUE ./sublauncher 1\n";
+  print "QUEUE ./sublog.sh subtest1\n";
+  print "QUEUE ./log.sh thisshouldnotwork_sub1\n"
+} elsif ($state == 1 && !(-e '../output/sublauncher.data') && !(-e 'output/fail.data') && !(-e '../output/fail.data')){
+  print "QUEUEME\n";
+  print "QUEUE touch ../output/sublauncher.data\n";
+  print "QUEUE touch output/fail.data\n";
+  print "QUEUE ./sublog.sh subtest2\n";
+  print "QUEUE ./log.sh thisshouldnotwork_sub2\n"
+} elsif ($state == 1 && (-e '../output/sublauncher.data')){
+  print "QUEUE ./sublauncher 2\n";
+  print "QUEUE ./sublog.sh subtest2b\n";
+  print "QUEUE ./log.sh thisshouldnotwork_sub2\n";
+} elsif ($state == 1 && (-e 'output/fail.data')){
+  print "QUEUE ./sublauncher fail\n";
+} elsif ($state == 1 && (-e '../output/fail.data')){
+  print "QUEUE ./sublauncher epic fail\n";
+} elsif ($state == 2) {
+  print "QUEUE ./sublauncher 3\n";
+  print "QUEUE ./sublog.sh subtest3\n";
+} elsif ($state == 3) {
+  print "QUEUE ./sublauncher 4\n";
+
+  print "SETDIR ..\n";
+  print "QUEUE ./log.sh sub_sub_log\n";
+} else {
+  print "QUEUE ./sublog.sh sublog_exit\n";
+}
