@@ -2,7 +2,7 @@
 
 #include <QtCore/QSettings>
 
-#include <QDebug>
+//#include <QDebug>
 
 AppLauncherModel::AppLauncherModel(QObject *parent)
     : QAbstractListModel(parent)
@@ -90,7 +90,7 @@ QString AppLauncherModel::iconPath() const
 
 static QString lookupIcon(const QString &name, const QString &dir)
 {
-  qDebug() << "lookupIcon" << name << dir;
+  //qDebug() << "lookupIcon" << name << dir;
 
   QString pathName = dir + "/" + name; 
   if (QFileInfo(pathName).isFile())
@@ -110,7 +110,7 @@ static QString lookupIcon(const QString &name, const QString &dir)
 
 QString AppLauncherModel::findIcon(const QString &name, const QString &dir) const
 {
-  qDebug() << "findIcon" << name << dir;
+//  qDebug() << "findIcon" << name << dir;
 
   if (name.isEmpty())
     return lookupIcon(QLatin1String("icon"), dir);

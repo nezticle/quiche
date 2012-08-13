@@ -2,8 +2,8 @@
 #define APPLAUNCHERMODEL_H
 
 #include <QtQml/qqml.h>
-#include <QAbstractListModel>
-#include <QDir>
+#include <QtCore/QAbstractListModel>
+#include <QtCore/QDir>
 
 class AppLauncherModel : public QAbstractListModel
 {

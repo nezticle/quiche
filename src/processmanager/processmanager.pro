@@ -3,7 +3,7 @@
 ######################################################################
 
 TEMPLATE = app
-TARGET = processmanager
+TARGET = quiche-processmanager
 DEPENDPATH += .
 INCLUDEPATH += .
 
@@ -12,3 +12,6 @@ QT = core
 # Input
 HEADERS += process.h processmanager.h
 SOURCES += main.cpp process.cpp processmanager.cpp
+
+target.path = /usr/bin
+INSTALLS += target

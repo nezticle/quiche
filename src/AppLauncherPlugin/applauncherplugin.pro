@@ -1,16 +1,16 @@
 TEMPLATE = lib
 TARGET = AppLauncherPlugin
 TARGETPATH = Quiche
-QT += declarative
+QT += qml
 CONFIG += qt plugin
 
 TARGET = $$qtLibraryTarget($$TARGET)
 uri = Quiche
 
-target.path = $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
+target.path = /usr/imports/$$TARGETPATH
 
 qmldir.files += $$PWD/qmldir
-qmldir.path +=  $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
+qmldir.path +=  /usr/imports/$$TARGETPATH
 
 # Input
 SOURCES += \
@@ -23,6 +23,7 @@ HEADERS += \
     applaunchermodel.h \
     quicheconsole.h
 
-OTHER_FILES = qmldir
+OTHER_FILES = qmldir \
+    AppLauncherPluginPlugin.json
 
 INSTALLS += target qmldir

@@ -11,5 +11,3 @@ void AppLauncherPluginPlugin::registerTypes(const char *uri)
     qmlRegisterType<QuicheConsole>(uri, 1, 0, "QuicheConsole");
 }
 
-Q_EXPORT_PLUGIN2(AppLauncherPlugin, AppLauncherPluginPlugin)
-
