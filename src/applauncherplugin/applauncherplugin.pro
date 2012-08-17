@@ -7,10 +7,15 @@ CONFIG += qt plugin
 TARGET = $$qtLibraryTarget($$TARGET)
 uri = Quiche
 
-target.path = /usr/imports/$$TARGETPATH
-
 qmldir.files += $$PWD/qmldir
-qmldir.path +=  /usr/imports/$$TARGETPATH
+
+linux-rasp-pi-g++{
+    target.path = /usr/imports/$$TARGETPATH
+    qmldir.path +=  /usr/imports/$$TARGETPATH
+} else {
+    target.path = $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
+    qmldir.path = $$[QT_INSTALL_IMPORTS]/$$TARGETPATH
+}
 
 # Input
 SOURCES += \

@@ -13,5 +13,8 @@ QT = core
 HEADERS += process.h processmanager.h
 SOURCES += main.cpp process.cpp processmanager.cpp
 
-target.path = /usr/bin
+linux-rasp-pi-g++{
+    target.path = /usr/bin
+}
+
 INSTALLS += target
